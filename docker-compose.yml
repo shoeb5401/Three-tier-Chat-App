@@ -1,0 +1,68 @@
+services:
+  frontend:
+    container_name: frontend-container
+    image: shoeb5401/chat-app-frontend:v1
+    ports:
+      - "5173:5173"
+    networks:
+      - chat-app-NW
+    environment:
+      - MODE=development
+    depends_on:
+      - backend
+      - db
+    restart: always
+
+  backend:
+    container_name: backend-container
+    image: shoeb5401/chat-app-backend:v1
+    ports:
+      - "5000:5000"
+    networks:
+      - chat-app-NW
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - JWT_SECRET=chat-app-secret-key
+      - MONGODB_URI=mongodb://zsm3084:rootpassword@db:27017/chat-app?authSource=admin
+    restart: always
+
+  db:
+    container_name: mongo-container
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - chat-app-NW
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=zsm3084
+      - MONGO_INITDB_ROOT_PASSWORD=rootpassword
+      - MONGO_INITDB_DATABASE=chat-app
+    volumes:
+      - chat-app-volume:/data/db
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--username",
+          "zsm3084",
+          "--password",
+          "rootpassword",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  chat-app-NW:
+
+volumes:
+  chat-app-volume:
