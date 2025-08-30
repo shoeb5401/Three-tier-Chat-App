@@ -1,20 +1,21 @@
-#  Build React App 
+# Build React App
 FROM node:18-alpine AS builder
-
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
-
-# Copy all source files 
 COPY . .
+RUN npm run build
 
-# EXPOSE the PORT
-EXPOSE 5173
+# Production Nginx image
+FROM nginx:alpine
 
-# Run the Application
+# Copy React build
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-CMD ["npm", "start"]
+
+# Copy nginx template instead of conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 
+# Expose port
+EXPOSE 80
