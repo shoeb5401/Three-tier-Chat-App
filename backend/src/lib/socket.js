@@ -6,10 +6,14 @@ const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
+  path: "/api/socket.io",
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://chat-app.local"],
+    methods: ["GET", "POST"],
+    credentials: true,
   },
 });
+
 
 export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
