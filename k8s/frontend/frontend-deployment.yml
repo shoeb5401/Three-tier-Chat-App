@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: chat-app
+spec:
+  selector:
+    matchLabels:
+      app: frontend-deployment
+  template:
+    metadata:
+      labels:
+        app: frontend-deployment
+    spec:
+      containers:
+        - name: frontend-deployment-conatiner
+          image: shoeb5401/chat-app-frontend:v2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_HOST
+              value: backend-service.chat-app.svc.cluster.local
+            - name: BACKEND_PORT
+              value: "5000"
+            - name: MODE
+              value: production
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
