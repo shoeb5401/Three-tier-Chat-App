@@ -1,4 +1,5 @@
 import express from "express";
+import client from "prom-client";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -41,6 +42,14 @@ app.use("/health", healthRoutes);
 //     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
 //   });
 // }
+
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics(); // collect CPU, memory, event loop metrics
+
+app.get("/metrics", async (req, res) => {
+  res.set("Content-Type", client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 server.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
