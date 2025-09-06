@@ -1,505 +1,331 @@
-# 💬 Real-Time Chat Application
+# 🚀 Real-Time Chat Application - Complete DevOps Pipeline
 
-A modern, scalable real-time chat application built with React, Node.js, and MongoDB, featuring complete containerization with Docker and production-ready Kubernetes deployment with monitoring.
+A production-ready real-time chat application with full containerization, Kubernetes deployment, and comprehensive monitoring. This project demonstrates a complete DevOps workflow from development to production monitoring.
 
+## 🏗️ Architecture Overview
 
-## 🚀 Features
+![Architecture Diagram](/assets/three-tier-arch.png)
+
+The architecture follows a microservices approach with containerized deployment and comprehensive monitoring:
+
+### Development Phase
+
+- **Source Control**: GitHub repository with React frontend and Node.js backend
+- **Containerization**: Docker images built for each service
+- **Registry**: Docker Hub for image storage and distribution
+
+### Deployment Phase
+
+- **Orchestration**: Kubernetes cluster with namespace isolation
+- **Services**: React frontend, Node.js backend, MongoDB database
+- **Auto-scaling**: Horizontal Pod Autoscalers for dynamic scaling
+- **Networking**: Ingress controller for external access
+- **Storage**: Persistent volumes for database persistence
+
+### Monitoring Phase
+
+- **Metrics**: Prometheus for metrics collection
+- **Visualization**: Grafana for monitoring dashboards
+- **Package Management**: Helm for streamlined deployments
+
+## ✨ Features
 
 - **Real-time messaging** with Socket.io
 - **User authentication** with JWT tokens
 - **File uploads** with Cloudinary integration
 - **Responsive design** with Tailwind CSS
-- **Containerized** with Docker
-- **Kubernetes-ready** with full manifest files
-- **Monitoring** with Prometheus and Grafana
-- **SSL/TLS** security with self-signed certificates
-- **Auto-scaling** with Horizontal Pod Autoscaler (HPA)
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Database      │
-│   (React)       │◄──►│   (Node.js)     │◄──►│   (MongoDB)     │
-│   Port: 80      │    │   Port: 5001    │    │   Port: 27017   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   Ingress       │
-                    │   (Nginx)       │
-                    └─────────────────┘
-```
+- **Complete containerization** with Docker
+- **Production-ready Kubernetes** deployment
+- **Auto-scaling** with HPA (Horizontal Pod Autoscaler)
+- **Comprehensive monitoring** with Prometheus & Grafana
+- **CI/CD pipeline** integration ready
+- **SSL/TLS security** with certificate management
+- **Persistent storage** for database
 
 ## 📋 Prerequisites
 
-- Docker and Docker Compose
+- Docker & Docker Compose
 - Kubernetes cluster (minikube, kind, or cloud provider)
-- kubectl configured
-- Helm 3.x
+- kubectl configured and authenticated
+- Helm 3.x for package management
 - Node.js 18+ (for local development)
+- Git for version control
 
-## 🐳 Step 1: Docker Configuration
+## 🔄 DevOps Workflow
 
-### Frontend Dockerfile
-```dockerfile
-# Multi-stage build for optimized production image
-FROM node:18-alpine as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
+### 1. Development & Containerization
 
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-### Backend Dockerfile
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-EXPOSE 5001
-CMD ["npm", "start"]
-```
-
-## 🐳 Step 2: Local Development with Docker Compose
-
-### docker-compose.yml
-```yaml
-version: '3.8'
-services:
-  mongodb:
-    image: mongo:7
-    container_name: chat-mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - chat-network
-
-  backend:
-    build: ./backend
-    container_name: chat-backend
-    restart: unless-stopped
-    ports:
-      - "5001:5001"
-    environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/chat-app?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key
-      - CLOUDINARY_CLOUD_NAME=your-cloud-name
-      - CLOUDINARY_API_KEY=your-api-key
-      - CLOUDINARY_API_SECRET=your-api-secret
-    depends_on:
-      - mongodb
-    networks:
-      - chat-network
-
-  frontend:
-    build: ./frontend
-    container_name: chat-frontend
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - chat-network
-
-volumes:
-  mongodb_data:
-
-networks:
-  chat-network:
-    driver: bridge
-```
-
-### Running Locally
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd chat-application
+git clone https://github.com/shoeb5401/Three-tier-Chat-App.git
+cd Three-tier-Chat-App
 
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+# Build Docker images
+docker build -t chat-frontend:v2 ./frontend
+docker build -t chat-backend:v2 ./backend
 ```
 
-## 📦 Step 3: Docker Hub Deployment
+### 2. Docker Registry (Docker Hub)
 
-### Build and Push Images
 ```bash
-# Build and tag images
-docker build -t yourusername/chat-frontend:latest ./frontend
-docker build -t yourusername/chat-backend:latest ./backend
+# Tag images for Docker Hub
+docker tag chat-frontend:latest yourusername/chat-frontend:v2
+docker tag chat-backend:latest yourusername/chat-backend:v2
 
 # Push to Docker Hub
-docker push yourusername/chat-frontend:latest
-docker push yourusername/chat-backend:latest
-
-# Tag specific versions
-docker tag yourusername/chat-frontend:latest yourusername/chat-frontend:v1.0.0
-docker tag yourusername/chat-backend:latest yourusername/chat-backend:v1.0.0
-
-docker push yourusername/chat-frontend:v1.0.0
-docker push yourusername/chat-backend:v1.0.0
+docker push yourusername/chat-frontend:v2
+docker push yourusername/chat-backend:v2
 ```
 
-## ☸️ Step 4: Kubernetes Deployment
+### 3. Kubernetes Deployment
 
-### Create Namespace and Secrets
+#### Create Namespace and Setup
+
 ```bash
-# Apply namespace
-kubectl apply -f k8s/namespace.yml
+# Create dedicated namespace
+kubectl create namespace chat-app
+kubectl create -f k8s/namespace.yml
 
-# Create secrets (update with your values)
-kubectl apply -f k8s/secret.yml
+# Apply secrets and configurations
+kubectl apply -f k8s/secrets.yml -n chat-app
 ```
 
-### namespace.yml
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: chat-app
-  labels:
-    name: chat-app
-    purpose: real-time-chat-application
-```
+#### Database Layer - MongoDB
 
-### secret.yml
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: chat-app-secrets
-  namespace: chat-app
-type: Opaque
-stringData:
-  mongodb-username: admin
-  mongodb-password: password123
-  jwt-secret: your-super-secret-jwt-key
-  cloudinary-cloud-name: your-cloud-name
-  cloudinary-api-key: your-api-key
-  cloudinary-api-secret: your-api-secret
-```
-
-## 🗄️ Step 5: Database Configuration
-
-### Deploy MongoDB
 ```bash
-kubectl apply -f k8s/db/mongodb-pv.yml
-kubectl apply -f k8s/db/mongodb-pvc.yml
-kubectl apply -f k8s/db/mongodb-deployment.yml
-kubectl apply -f k8s/db/mongodb-service.yml
+# Deploy persistent storage
+kubectl apply -f k8s/database/mongodb-pv.yml
+kubectl apply -f k8s/database/mongodb-pvc.yml
+
+# Deploy MongoDB
+kubectl apply -f k8s/database/mongodb-deployment.yml
+kubectl apply -f k8s/database/mongodb-service.yml
 ```
 
-### Key MongoDB Manifests
-- **Persistent Volume**: 10Gi storage for data persistence
-- **Persistent Volume Claim**: Dynamic storage allocation
-- **Deployment**: StatefulSet-like deployment with 1 replica
-- **Service**: ClusterIP service for internal communication
+#### Backend Layer - Node.js API
 
-## 🔧 Step 6: Backend Deployment
-
-### Deploy Backend Services
 ```bash
-kubectl apply -f k8s/backend/backend-deployment.yml
-kubectl apply -f k8s/backend/backend-service.yml
-kubectl apply -f k8s/backend/backend-hpa.yml
+# Deploy backend service
+kubectl apply -f k8s/backend/nodejs-deployment.yml
+kubectl apply -f k8s/backend/nodejs-service.yml
+
+# Enable auto-scaling
+kubectl apply -f k8s/backend/nodejs-hpa.yml
 ```
 
-### Backend Features
-- **Deployment**: 3 replicas with rolling updates
-- **Service**: ClusterIP service exposing port 5001
-- **HPA**: Auto-scaling from 2-10 pods based on CPU (70%)
-- **Health Checks**: Readiness and liveness probes
-- **Resource Limits**: CPU and memory constraints
+#### Frontend Layer - React App
 
-## 🎨 Step 7: Frontend Deployment
-
-### Deploy Frontend Services
 ```bash
-kubectl apply -f k8s/frontend/frontend-deployment.yml
-kubectl apply -f k8s/frontend/frontend-service.yml
-kubectl apply -f k8s/frontend/frontend-hpa.yml
+# Deploy frontend service
+kubectl apply -f k8s/frontend/react-deployment.yml
+kubectl apply -f k8s/frontend/react-service.yml
+
+# Enable auto-scaling
+kubectl apply -f k8s/frontend/react-hpa.yml
 ```
 
-### Frontend Features
-- **Nginx-based**: Optimized static file serving
-- **Auto-scaling**: 2-8 pods based on CPU usage
-- **Resource Optimization**: Efficient memory and CPU usage
-- **Health Endpoints**: Custom health check routes
+#### Networking - Ingress
 
-## 🌐 Step 8: Ingress Configuration
-
-### Deploy Ingress
 ```bash
-# Install Nginx Ingress Controller (if not already installed)
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+# Deploy ingress controller
+kubectl apply -f k8s/ingress/ingress-deployment.yml
 
-# Apply ingress configuration
-kubectl apply -f k8s/ingress/ingress.yml
+# Configure routing rules
+kubectl apply -f k8s/ingress/ingress-rules.yml
 ```
 
-### Ingress Features
-- **Path-based routing**: `/api/*` → Backend, `/*` → Frontend
-- **TLS termination**: SSL certificate management
-- **Load balancing**: Automatic traffic distribution
+## 📊 Monitoring Setup
 
-## 🔒 Step 9: SSL/TLS Configuration
+### Deploy Prometheus & Grafana with Helm
 
-### Create Self-Signed Certificate
-```bash
-# Generate self-signed certificate
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout tls.key -out tls.crt \
-  -subj "/CN=chat-app.local/O=chat-app"
-
-# Create TLS secret
-kubectl create secret tls chat-app-tls \
-  --cert=tls.crt --key=tls.key -n chat-app
-
-# Or apply the manifest
-kubectl apply -f k8s/chat-app-tls.yml
-```
-
-## 📊 Step 10: Monitoring with Prometheus & Grafana
-
-### Install Monitoring Stack
 ```bash
 # Add Helm repositories
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
+# Create monitoring namespace
+kubectl create namespace monitoring
+
 # Install Prometheus
 helm install prometheus prometheus-community/kube-prometheus-stack \
-  --namespace monitoring --create-namespace \
-  --set grafana.adminPassword=admin123
+  --namespace monitoring \
+  --set grafana.adminPassword=admin123 \
+  --set prometheus.prometheusSpec.retention=30d
 
-# Port forward to access services
+# Verify deployment
+kubectl get pods -n monitoring
+```
+
+### Access Monitoring Services
+
+```bash
+# Port forward Grafana
 kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80 &
+
+# Port forward Prometheus
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090 &
 ```
 
-### Access Monitoring
-- **Grafana**: http://localhost:3000 (admin/admin123)
-- **Prometheus**: http://localhost:9090
+- **Grafana Dashboard**: http://localhost:3000 (admin/admin123)
+- **Prometheus UI**: http://localhost:9090
 
-## 📈 Step 11: Backend Metrics Implementation
 
-### Add Metrics Endpoint to Backend
-```javascript
-// Add to backend/src/index.js
-const promClient = require('prom-client');
+### Monitoring Deployment Status
 
-// Create a Registry
-const register = new promClient.Registry();
-
-// Add default metrics
-promClient.collectDefaultMetrics({ register });
-
-// Custom metrics
-const httpDuration = new promClient.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status_code'],
-});
-
-const httpRequestsTotal = new promClient.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status_code'],
-});
-
-register.registerMetric(httpDuration);
-register.registerMetric(httpRequestsTotal);
-
-// Metrics endpoint
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', register.contentType);
-  res.end(await register.metrics());
-});
-```
-
-## 🚀 Deployment Commands
-
-### Complete Deployment
 ```bash
-# 1. Build and push Docker images
-docker build -t yourusername/chat-frontend:v1.0.0 ./frontend
-docker build -t yourusername/chat-backend:v1.0.0 ./backend
-docker push yourusername/chat-frontend:v1.0.0
-docker push yourusername/chat-backend:v1.0.0
-
-# 2. Deploy to Kubernetes
-kubectl apply -f k8s/namespace.yml
-kubectl apply -f k8s/secret.yml
-
-# 3. Deploy database
-kubectl apply -f k8s/db/
-
-# 4. Deploy backend
-kubectl apply -f k8s/backend/
-
-# 5. Deploy frontend
-kubectl apply -f k8s/frontend/
-
-# 6. Configure ingress and TLS
-kubectl apply -f k8s/ingress/
-kubectl apply -f k8s/chat-app-tls.yml
-
-# 7. Install monitoring
-helm install prometheus prometheus-community/kube-prometheus-stack \
-  --namespace monitoring --create-namespace
-
-# 8. Verify deployment
-kubectl get pods -n chat-app
-kubectl get svc -n chat-app
-kubectl get ingress -n chat-app
-```
-
-### Useful Commands
-```bash
-# Check application status
+# Check all resources in chat-app namespace
 kubectl get all -n chat-app
 
-# View logs
-kubectl logs -f deployment/chat-backend -n chat-app
-kubectl logs -f deployment/chat-frontend -n chat-app
-
-# Scale manually
-kubectl scale deployment chat-backend --replicas=5 -n chat-app
+# Check pod status and logs
+kubectl get pods -n chat-app -w
+kubectl logs -f deployment/frontend-deployment -n chat-app
+kubectl logs -f deployment/backend-deployment -n chat-app
 
 # Check HPA status
 kubectl get hpa -n chat-app
 
-# Port forward for local testing
-kubectl port-forward svc/chat-frontend-service 8080:80 -n chat-app
+# Check ingress configuration
+kubectl get ingress -n chat-app
+kubectl describe ingress chat-app-ingress -n chat-app
 ```
 
-## 🧪 Load Testing
+## 📈 Performance Monitoring
 
-### Using Locust
-```bash
-# Install Locust
-pip install locust
+### Key Metrics Tracked
 
-# Run load test
-cd k8s
-locust -f locust.py --host=http://your-app-url
-```
+#### Application Metrics
 
-## 🔍 Monitoring & Observability
+- HTTP request rate and response times
+- WebSocket connection stability
+- Database query performance
+- Error rates and success ratios
 
-### Key Metrics to Monitor
-- **Application Metrics**: Response time, error rate, throughput
-- **Infrastructure Metrics**: CPU, memory, disk usage
-- **Custom Metrics**: Active users, messages per second
-- **Business Metrics**: User engagement, feature usage
+#### Infrastructure Metrics
 
-## 📊 DevOps Monitoring Dashboard
+- Pod CPU and memory usage
+- Node resource utilization
+- Storage I/O performance
+- Network throughput and latency
 
-### **Key Performance Indicators (KPIs)**
-```bash
-# Application Health Metrics
-- API Success Rate: 99.5%+
-- WebSocket Connection Stability: 99.8%+
-- Database Query Performance: <20ms avg
-- Container Resource Utilization: 60-80%
+#### Business Metrics
 
-# Infrastructure Metrics
-- Pod Restart Rate: <1% per day
-- Node Resource Consumption: <70%
-- Storage I/O Performance: <5ms latency
-- Network Throughput: 1Gbps+
+- Active user count
+- Messages per second
+- Feature usage analytics
+- User engagement metrics
 
-# Deployment Metrics
-- Deployment Frequency: On-demand
-- Lead Time for Changes: <30 minutes
-- Mean Time to Recovery: <5 minutes
-- Change Failure Rate: <2%
-```
+### Grafana Dashboards
 
-### **Grafana Dashboard Components**
+Pre-configured dashboards available:
+
 - **Application Performance Monitoring (APM)**
 - **Kubernetes Cluster Overview**
 - **MongoDB Performance Metrics**
 - **Ingress Traffic Analytics**
 - **Custom Business Metrics**
 
-## 📁 Project Structure
+## 🔧 Auto-Scaling Configuration
 
+### Horizontal Pod Autoscaler (HPA) Settings
+
+- **Frontend (React)**: 2-8 replicas based on 70% CPU utilization
+- **Backend (Node.js)**: 3-10 replicas based on 70% CPU utilization
+- **Database (MongoDB)**: Stateful deployment with 1 replica + backup strategy
+
+## 🔒 Security Features
+
+- **JWT-based authentication** with secure token management
+- **TLS/SSL encryption** with automated certificate management
+- **Network policies** for pod-to-pod communication
+- **RBAC** (Role-Based Access Control) for Kubernetes resources
+- **Secret management** using Kubernetes secrets
+- **Container security** with non-root users and read-only filesystems
+
+## 🧪 Testing & Quality Assurance
+
+### Load Testing with Locust
+
+```python
+# locust.py
+from locust import HttpUser, task, between
+
+class ChatAppUser(HttpUser):
+    wait_time = between(1, 3)
+
+    @task
+    def load_homepage(self):
+        self.client.get("/")
+
+    @task
+    def api_health_check(self):
+        self.client.get("/api/health")
 ```
-chat-application/
-├── backend/                 # Node.js API server
-├── frontend/               # React application
-├── k8s/                   # Kubernetes manifests
-│   ├── backend/           # Backend K8s resources
-│   ├── frontend/          # Frontend K8s resources
-│   ├── db/               # Database K8s resources
-│   └── ingress/          # Ingress configuration
-└── docker-compose.yml    # Local development setup
-```
 
-## 🐛 Troubleshooting
+Run load testing:
 
-### Common Issues
 ```bash
-# Pod not starting
-kubectl describe pod <pod-name> -n chat-app
-
-# Service not accessible
-kubectl get endpoints -n chat-app
-
-# Ingress issues
-kubectl describe ingress chat-app-ingress -n chat-app
-
-# Check secrets
-kubectl get secrets -n chat-app
-kubectl describe secret chat-app-secrets -n chat-app
+pip install locust
+locust -f locust.py --host=http://your-app-domain.com
 ```
 
 ## 📁 Project Structure
 
 ```
 chat-application/
-├── backend/                 # Node.js API server
-├── frontend/               # React application
-├── k8s/                   # Kubernetes manifests
-│   ├── backend/           # Backend K8s resources
-│   ├── frontend/          # Frontend K8s resources
-│   ├── db/               # Database K8s resources
-│   └── ingress/          # Ingress configuration
-└── docker-compose.yml    # Local development setup
+├── frontend/                   # React application
+│   ├── src/
+│   ├── public/
+│   ├── Dockerfile
+│   └── package.json
+├── backend/                    # Node.js API server
+│   ├── src/
+│   ├── Dockerfile
+│   └── package.json
+├── k8s/                       # Kubernetes manifests
+│   ├── namespace.yml
+│   ├── secrets.yml
+│   ├── database/              # MongoDB resources
+│   ├── backend/               # Node.js resources
+│   ├── frontend/              # React resources
+│   └── ingress/               # Networking configuration
+└── docker-compose.yml         # Local development
 ```
 
-## 🤝 Contributing
+## 🛠️ Troubleshooting
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Common Issues and Solutions
 
+#### Pods Not Starting
 
-**Built with ❤️ using modern DevOps practices**
+```bash
+# Check pod status and events
+kubectl describe pod <pod-name> -n chat-app
+kubectl get events -n chat-app --sort-by='.lastTimestamp'
+```
+
+#### Service Discovery Issues
+
+```bash
+# Check service endpoints
+kubectl get endpoints -n chat-app
+kubectl describe service <service-name> -n chat-app
+```
+
+#### Ingress Connectivity Problems
+
+```bash
+# Verify ingress controller
+kubectl get pods -n ingress-nginx
+kubectl logs -f deployment/ingress-nginx-controller -n ingress-nginx
+```
+
+#### Database Connection Issues
+
+```bash
+# Check MongoDB logs
+kubectl logs -f deployment/mongodb-deployment -n chat-app
+
+# Test database connectivity
+kubectl exec -it <backend-pod> -n chat-app -- npm run db:test
+```
