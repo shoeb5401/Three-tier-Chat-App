@@ -7,8 +7,8 @@ services:
     networks:
       - chat-app-NW
     environment:
-      - BACKEND_HOST=backend
-      - BACKEND_PORT=5000
+      - BACKEND_HOST=${BACKEND_HOST}
+      - BACKEND_PORT=${BACKEND_PORT}
     depends_on:
       - backend
       - db
@@ -25,10 +25,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      - PORT=5000
-      - NODE_ENV=production
-      - JWT_SECRET=chat-app-secret-key
-      - MONGODB_URI=mongodb://zsm3084:rootpassword@db:27017/chat-app?authSource=admin
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=${MONGODB_URI}
     restart: always
 
   db:
@@ -39,9 +39,9 @@ services:
     networks:
       - chat-app-NW
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=zsm3084
-      - MONGO_INITDB_ROOT_PASSWORD=rootpassword
-      - MONGO_INITDB_DATABASE=chat-app
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
     volumes:
       - chat-app-volume:/data/db
     restart: always
