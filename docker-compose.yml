@@ -33,7 +33,7 @@ services:
 
   db:
     container_name: mongo-container
-    image: mongo:latest
+    image: mongo:noble
     ports:
       - "27017:27017"
     networks:
